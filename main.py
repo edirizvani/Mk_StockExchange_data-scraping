@@ -1,3 +1,4 @@
+import asyncio
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -12,7 +13,7 @@ from datetime import datetime
 
 
 
-async def create_selenium_driver(download_dir):
+def create_selenium_driver(download_dir):
     chrome_options = Options()
     chrome_options.add_experimental_option("prefs", {
             "download.default_directory": download_dir,  # Set download directory
@@ -31,7 +32,7 @@ async def create_selenium_driver(download_dir):
 
 
 
-async def get_data_for_x_years(years,stockname):
+def get_data_for_x_years(years,stockname):
     timestamp = datetime.now().minute
 
     download_dir = os.path.join("C:\\Users\\Administrator\\python-project-data-mse\\downloaded_files", stockname)
@@ -64,9 +65,9 @@ async def get_data_for_x_years(years,stockname):
     
     driver.quit()
     
-    return join_data(download_dir,'ALK')
+    return join_data(download_dir,stockname)
 
-async def join_data(download_dir,stockname):
+def join_data(download_dir,stockname):
     dataframes_list=[]
     for s in [""]+[" (" + str(i) + ")" for i in range(1,5)]:
         downloaded_file = os.path.join(download_dir,  f"Историски податоци"+s+".xls")
@@ -84,7 +85,7 @@ async def join_data(download_dir,stockname):
             df_now = tables[0]
             dataframes_list.append(df_now)
 
-    output_directory = "C:\\Users\\Administrator\\python-project-data-mse\\All_Stock_Data\\" +stockname
+    output_directory = "C:\\Users\\Administrator\\python-project-data-mse\\All_Stock_Data"
 
     # Concatenate all DataFrames in the list into a single DataFrame
     if dataframes_list:
@@ -103,24 +104,24 @@ async def join_data(download_dir,stockname):
 
 def get_stock_data(codes):
     for c in codes:
-        final_df = get_data_for_x_years(10, c)  
+        get_data_for_x_years(10, c)  
     
 
 
-driver =create_selenium_driver("")
+download_dir = "./"
+driver =  create_selenium_driver(download_dir)
 driver.get("https://www.mse.mk/mk/stats/symbolhistory/ALK")
+
 codes = [option.get_attribute("value") for option in driver.find_elements(By.CSS_SELECTOR, "#Code option")]
-
-filtered_codes= [
+filtered_codes = [
     c for c in codes
-    if not (c.startswith('E') or (any(char.isdigit() for char in c)))
+    if not (c.startswith('E') or any(char.isdigit() for char in c))
 ]
-
+get_stock_data(filtered_codes)
 driver.quit()
 
-get_stock_data(filtered_codes)
 
-# Clean up the driver
+
  # Replace with your desired output directory
 # final_df = get_data_for_x_years(5, output_directory)  # Replace 5 with the number of years you want
 
